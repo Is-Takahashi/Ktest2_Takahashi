@@ -16,43 +16,31 @@ $Bpoint = 0;
 $Cpoint = 0;
 $gamecount;
 
-
-for($i=1;$i<=13;$i++){
-    for($j=1;$j<=4;$j++){
+//1~13のカードを4枚ずつ配列に加えて、トランプを構成する
+for ($i=1; $i<=13; $i++){
+    for($j=1; $j<=4; $j++){
         $cardpool[] = $i;
     }
 }
 
-//52枚だと3人で分割する時に1枚あまるので、最初に1枚除外
-$remove = rand(0,51);
-unset($cardpool[$remove]);
-$cardpool = array_values($cardpool);
-
-for($i=1; $i<=17; $i++){  //Aにカードを17枚渡す
-    $set = rand(0,51-$i);
-
-    $Adeck[]=$cardpool[$set];
-    unset($cardpool[$set]);
+//トランプの束をシャッフル
+shuffle($cardpool);
+//束の上からカードを17枚とって、Aに渡す
+for ($i=1; $i<=17; $i++){
+    $Adeck[]=array_shift($cardpool);
+    $cardpool=array_values($cardpool);
+}
+//束の上からカードを17枚とって、Bに渡す
+for ($i=1; $i<=17; $i++){
+    $Bdeck[]=array_shift($cardpool);
+    $cardpool=array_values($cardpool);
+}
+//束の上からカードを17枚とって、Cに渡す
+for ($i=1; $i<=17; $i++){
+    $Cdeck[]=array_shift($cardpool);
     $cardpool=array_values($cardpool);
 }
 
-for($i=1; $i<=17; $i++){  //Bにカードを17枚渡す
-    $set = rand(0,34-$i);
-
-    $Bdeck[]=$cardpool[$set];
-    unset($cardpool[$set]);
-    $cardpool=array_values($cardpool);
-}
-
-for($i=1; $i<=17; $i++){   //Cにカードを17枚渡す
-    $set = rand(0,17-$i);
-
-    $Cdeck[]=$cardpool[$set];
-    unset($cardpool[$set]);
-    $cardpool=array_values($cardpool);
-}
-
-$s->query("delete from test10");
 
 //ここまでカードの分配。ここからゲームスタート
 
@@ -67,8 +55,9 @@ print "<td>Bの得点</td>";
 print "<td>Cの得点</td>";
 print "</tr>";
 
-
-for($i=0;$i<=16;$i++){ //配られた順にカードを出すので、配列を順番に確認していく
+//配られた順にカードを出すので、それぞれのプレイヤーのカードが収められている配列を
+//順番に確認していく
+for ($i=0; $i<=16; $i++){
     $gamecount++;
 
     print "<tr>";
@@ -77,30 +66,31 @@ for($i=0;$i<=16;$i++){ //配られた順にカードを出すので、配列を�
     print "<td>" . $Bdeck[$i] . "</td>";
     print "<td>" . $Cdeck[$i] . "</td>";
 
-    if($Adeck[$i] == $Bdeck[$i] && $Bdeck[$i] == $Cdeck[$i]){   //勝敗の判定と表への追記
+    //勝敗の判定と表への追記
+    if ($Adeck[$i] == $Bdeck[$i] && $Bdeck[$i] == $Cdeck[$i]){
         print "<td>3人とも同じ値</td>";
         $Apoint++;
         $Bpoint++;
         $Cpoint++;
-    }elseif($Adeck[$i] > $Bdeck[$i] && $Adeck[$i] > $Cdeck[$i]) {
+    }else if($Adeck[$i] > $Bdeck[$i] && $Adeck[$i] > $Cdeck[$i]) {
         print "<td>Aが一人勝ち</td>";
         $Apoint += 3;
-    }elseif($Adeck[$i] == $Bdeck[$i] && $Adeck[$i] > $Cdeck[$i]) {
+    }else if($Adeck[$i] == $Bdeck[$i] && $Adeck[$i] > $Cdeck[$i]) {
         print "<td>AとBが勝ち</td>";
         $Apoint += 2;
         $Bpoint += 2;
-    }elseif($Adeck[$i] == $Cdeck[$i] && $Adeck[$i] > $Bdeck[$i]) {
+    }else if($Adeck[$i] == $Cdeck[$i] && $Adeck[$i] > $Bdeck[$i]) {
         print "<td>AとCが勝ち</td>";
         $Apoint += 2;
         $Cpoint += 2;
-    }elseif($Bdeck[$i] > $Adeck[$i] && $Bdeck[$i] > $Cdeck[$i]) {
+    }else if($Bdeck[$i] > $Adeck[$i] && $Bdeck[$i] > $Cdeck[$i]) {
         print "<td>Bが一人勝ち</td>";
         $Bpoint += 3;
-    }elseif($Bdeck[$i] == $Cdeck[$i] && $Bdeck[$i] > $Adeck[$i]) {
+    }else if($Bdeck[$i] == $Cdeck[$i] && $Bdeck[$i] > $Adeck[$i]) {
         print "<td>BとCが勝ち</td>";
         $Bpoint += 2;
         $Cpoint += 2;
-    }elseif($Cdeck[$i] > $Adeck[$i] && $Cdeck[$i] > $Bdeck[$i]) {
+    }else if($Cdeck[$i] > $Adeck[$i] && $Cdeck[$i] > $Bdeck[$i]) {
         print "<td>Cが一人勝ち</td>";
         $Cpoint += 3;
     }
@@ -116,6 +106,7 @@ for($i=0;$i<=16;$i++){ //配られた順にカードを出すので、配列を�
 </table>
 
 <?php
+//最後に総得点を表の下に表示
 print "<br>";
 print "Aの総得点:" . $Apoint . "点<br>";
 print "Bの総得点:" . $Bpoint . "点<br>";

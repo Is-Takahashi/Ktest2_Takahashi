@@ -21,52 +21,45 @@ $Acecard;
 $Aselect;
 $Aselectkey;
 $Nsearch;
-$derurituSYO;
-$derurituTYU;
-$derurituDAI;
+$ariaS;
+$ariaM;
+$ariaB;
 
-for($i=1;$i<=13;$i++){
-    for($j=1;$j<=4;$j++){
+//1~13のカードを4枚ずつ配列に加えて、トランプを構成する
+for ($i=1; $i<=13; $i++){
+    for ($j=1; $j<=4; $j++){
         $cardpool[] = $i;
         $memory[] = $i;
     }
 }
 
-//52枚だと3人で分割する時に1枚あまるので、最初に1枚除外
-$remove = rand(0,51);
-unset($cardpool[$remove]);
-$cardpool = array_values($cardpool);
-unset($memory[$remove]);
-$memory = array_values($memory);
-//var_dump($memory);
+//トランプの束をシャッフル
+shuffle($cardpool);
 
-for($i=1; $i<=17; $i++){  //Aにカードを17枚渡す
-    $set = rand(0,51-$i);
-
-    $Adeck[]=$cardpool[$set];
-    unset($cardpool[$set]);
+//束の上からカードを17枚とって、Aに渡す
+for ($i=1; $i<=17; $i++){
+    $Adeck[]=array_shift($cardpool);
     $cardpool=array_values($cardpool);
-    unset($memory[$set]);
+
+    //Aの手札に加わったカードを、「まだ出ていないカード群」から除外
+    $delAcard = array_search(end($Adeck),$memory);
+    
+    unset($memory[$delAcard]);
     $memory = array_values($memory);
+    rsort($memory);
 }
 
-for($i=1; $i<=17; $i++){  //Bにカードを17枚渡す
-    $set = rand(0,34-$i);
-
-    $Bdeck[]=$cardpool[$set];
-    unset($cardpool[$set]);
+//束の上からカードを17枚とって、Bに渡す
+for ($i=1; $i<=17; $i++){
+    $Bdeck[]=array_shift($cardpool);
+    $cardpool=array_values($cardpool);
+}
+//束の上からカードを17枚とって、Cに渡す
+for ($i=1; $i<=17; $i++){
+    $Cdeck[]=array_shift($cardpool);
     $cardpool=array_values($cardpool);
 }
 
-for($i=1; $i<=17; $i++){   //Cにカードを17枚渡す
-    $set = rand(0,17-$i);
-
-    $Cdeck[]=$cardpool[$set];
-    unset($cardpool[$set]);
-    $cardpool=array_values($cardpool);
-}
-
-$s->query("delete from test10");
 
 //ここまでカードの分配。ここからゲームスタート
 
@@ -81,58 +74,64 @@ print "<td>Bの得点</td>";
 print "<td>Cの得点</td>";
 print "</tr>";
 
-sort($Adeck);  //Aの持つカードを昇順に並べ替え
+//Aの持つカードを昇順に並べ替え
+sort($Adeck);
 
-for($i=0;$i<=16;$i++){
+for ($i=0; $i<=16; $i++){
     $gamecount++;
-
 
     //ここからAのカードの出し方を考える
 
-    $derurituSYO = 0;
-    $derurituTYU = 0;
-    $derurituDAI = 0;
+    //ariaSは1~4の流通量
+    $ariaS = 0;
+    //ariaMは5~9の流通量
+    $ariaM = 0;
+    //ariaCは1~4の流通量
+    $ariaB = 0;
 
-    for($j=1;$j<=13;$j++){
-        foreach($memory as $Nsearch){  //残りのカードのうち、「1~4」「5~9」「10~13」が一番多いか
-            if($Nsearch == $j){
-                if($Nsearch >= 1 && $Nsearch <=4){
-                    $derurituSYO++;
-                }elseif($Nsearch >= 5 && $Nsearch <=9){
-                    $derurituTYU++;
-                }else{
-                    $derurituDAI++;
+    for ($j=1; $j<=13; $j++){
+        //出る可能性のあるカードを、「1~4」「5~9」「10~13」の3つの群に分ける
+        foreach ($memory as $Nsearch){
+            if ($Nsearch == $j){
+                if ($Nsearch >= 1 && $Nsearch <=4){
+                    $ariaS++;
+                }else if($Nsearch >= 5 && $Nsearch <=9){
+                    $ariaM++;
+                }else if($Nsearch >= 10){
+                    $ariaB++;
                 }
             }
         }
     }
 
-    //出てくる可能性のあるカードのうち、「小(1~4)」「中(5~9)」「大(10~13)」のどれが一番多いかによって、
+    //出る可能性のあるカードのうち「S(1~4)」「M(5~9)」「B(10~13)」のどの群が一番多いかによって、
     //自分が出したい数値を決定する
-    if($derurituSYO > $derurituTYU && $derurituSYO > $derurituDAI) {
+    if ($ariaS > $ariaM && $ariaS > $ariaB) {
         $Acecard = 5;
-    }elseif($derurituSYO == $derurituTYU && $derurituSYO > $derurituDAI) {
+    }else if($ariaS == $ariaM && $ariaS > $ariaB) {
         $Acecard = 10;
-    }elseif($derurituSYO == $derurituDAI && $derurituSYO > $derurituTYU) {
+    }else if($ariaS == $ariaB && $ariaS > $ariaM) {
         $Acecard = 10;
-    }elseif($derurituTYU > $derurituSYO && $derurituTYU > $derurituDAI) {
+    }else if($ariaM > $ariaS && $ariaM > $ariaB) {
         $Acecard = 10;
-    }elseif($derurituTYU == $derurituDAI && $derurituTYU > $derurituSYO) {
+    }else if($ariaM == $ariaB && $ariaM > $ariaS) {
         $Acecard = 1;
-    }elseif($derurituDAI > $derurituSYO && $derurituDAI > $derurituSYO) {
+    }else if($ariaB > $ariaS && $ariaB > $ariaS) {
         $Acecard = 1;
-    }else{
+    }else if($ariaS == $ariaM && $ariaS == $ariaB){
         $Acecard = 7;
     }
 
     $Aselectkey = array_search($Acecard,$Adeck);
 
-    if($Aselectkey===false){
-        while($Aselectkey===false){  //出したい数値が手札にない時、カードを手札のうちから選ぶため、出したい数値から1大きく設定する
+    if ($Aselectkey === false){
+        //出したい数値が手札にない時、カードを手札のうちから選ぶため、出したい数値から1大きく設定する
+        while ($Aselectkey === false){
             $Acecard++;
             $Aselectkey = array_search($Acecard,$Adeck);
             
-            if($Acecard>13){  //出したい数値より小さいカードしか手札にない場合、手札の最小数値のカードを出す
+            //出したい数値より小さいカードしか手札にない場合は手札の最小数値のカードを出す
+            if ($Acecard > 13){
                 sort($Adeck);
                 $Aselectkey = 0;
                 break;
@@ -140,12 +139,15 @@ for($i=0;$i<=16;$i++){
         }
     }
 
-    $Aselect = $Adeck[$Aselectkey];  //カード決定、手札から抜き出して場に伏せる
+    //カード決定、手札から抜き出して場に伏せる
+    $Aselect = $Adeck[$Aselectkey];
     unset($Adeck[$Aselectkey]);
     $Adeck = array_values($Adeck);
 
+    //ここまでAのカードの出し方
 
-    //ここまでAのカードの出し方、ここから勝敗の判定と表への追記
+    //BとCは配られた順のままカードを出すので、$Bdeck[$i]と$Cdeck[$i]で今回のカードが分かる
+    //ここから勝敗の判定と表への追記
 
     print "<tr>";
     print "<td>" . $gamecount . "回目</td>";
@@ -153,35 +155,36 @@ for($i=0;$i<=16;$i++){
     print "<td>" . $Bdeck[$i] . "</td>";
     print "<td>" . $Cdeck[$i] . "</td>";
 
-    if($Aselect == $Bdeck[$i] && $Bdeck[$i] == $Cdeck[$i]){
+    if ($Aselect == $Bdeck[$i] && $Bdeck[$i] == $Cdeck[$i]){
         print "<td>3人とも同じ値</td>";
         $Apoint++;
         $Bpoint++;
         $Cpoint++;
-    }elseif($Aselect > $Bdeck[$i] && $Aselect > $Cdeck[$i]) {
+    }else if($Aselect > $Bdeck[$i] && $Aselect > $Cdeck[$i]) {
         print "<td>Aが一人勝ち</td>";
         $Apoint += 3;
-    }elseif($Aselect == $Bdeck[$i] && $Aselect > $Cdeck[$i]) {
+    }else if($Aselect == $Bdeck[$i] && $Aselect > $Cdeck[$i]) {
         print "<td>AとBが勝ち</td>";
         $Apoint += 2;
         $Bpoint += 2;
-    }elseif($Aselect == $Cdeck[$i] && $Aselect > $Bdeck[$i]) {
+    }else if($Aselect == $Cdeck[$i] && $Aselect > $Bdeck[$i]) {
         print "<td>AとCが勝ち</td>";
         $Apoint += 2;
         $Cpoint += 2;
-    }elseif($Bdeck[$i] > $Aselect && $Bdeck[$i] > $Cdeck[$i]) {
+    }else if($Bdeck[$i] > $Aselect && $Bdeck[$i] > $Cdeck[$i]) {
         print "<td>Bが一人勝ち</td>";
         $Bpoint += 3;
-    }elseif($Bdeck[$i] == $Cdeck[$i] && $Bdeck[$i] > $Aselect) {
+    }else if($Bdeck[$i] == $Cdeck[$i] && $Bdeck[$i] > $Aselect) {
         print "<td>BとCが勝ち</td>";
         $Bpoint += 2;
         $Cpoint += 2;
-    }elseif($Cdeck[$i] > $Aselect && $Cdeck[$i] > $Bdeck[$i]) {
+    }else if($Cdeck[$i] > $Aselect && $Cdeck[$i] > $Bdeck[$i]) {
         print "<td>Cが一人勝ち</td>";
         $Cpoint += 3;
     }
 
-    $delBcard = array_search($Bdeck[$i],$memory);  //BとCの今使ったカードを、「まだ出ていないカード群」から除外
+    //BとCの今使ったカードを、「まだ出ていないカード群」から除外
+    $delBcard = array_search($Bdeck[$i],$memory);
     unset($memory[$delBcard]);
     $delCcard = array_search($Cdeck[$i],$memory);
     unset($memory[$delCcard]);
@@ -192,13 +195,13 @@ for($i=0;$i<=16;$i++){
     print "<td>" . $Bpoint . "</td>";
     print "<td>" . $Cpoint . "</td>";
     print "</tr>";
-    
 }
 
 ?>
 </table>
 
 <?php
+//最後に総得点を表の下に表示
 print "<br>";
 print "Aの総得点:" . $Apoint . "点<br>";
 print "Bの総得点:" . $Bpoint . "点<br>";

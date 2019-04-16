@@ -1,42 +1,70 @@
 <?php
-$tw=[];
-$th=[];
-$ohfs=[];
-for($i=1;$i<=10000;$i++){
-    if($i%12==0){
-        $tw[]=$i;
+$tw = [];
+$th = [];
+$ohfs = [];
+$num = 0;
+$i = 0;
+
+//12の倍数で10000以下のものを配列に格納
+while ($num <= 10000){
+    $i++;
+    $num = 12 * $i;
+    if ($num >= 10000){
+        break;
     }
-    if($i%13==0){
-        $th[]=$i;
+    $tw[] = $num;
+}
+
+$i = 0;
+$num = 0;
+
+//13の倍数で10000以下のものを配列に格納
+while ($num <= 10000){
+    $i++;
+    $num = 13 * $i;
+    if ($num >= 10000){
+        break;
     }
-    if($i%156==0){
-        $ohfs[]=$i;
+    $th[] = $num;
+}
+
+//12の倍数と13の倍数のうち、両方に属するものは156の倍数
+foreach ($tw as $check12){
+    foreach ($th as $check13){
+        if ($check12 == $check13){
+            $ohfs[] = $check12;
+        }
     }
 }
+
 print '1~10000の間にある<br>';
 print '12の倍数: ';
 
-for($j=0;$j<count($tw);$j++){
+
+//12の倍数を1行に10個ずつ表示
+for ($j=0; $j<count($tw); $j++){
     print $tw[$j] . ',';
-    if(($j+1)%10==0){
+    if (($j+1)%10==0){
         print '<br>';
     }
 }
 
 print '<br>13の倍数: ';
 
-for($k=0;$k<count($th);$k++){
-    print $th[$k] . ',';
-    if(($k+1)%10==0){
+//13の倍数を1行に10個ずつ表示
+for ($j=0; $j<count($th); $j++){
+    print $th[$j] . ',';
+    if (($j+1)%10==0){
         print '<br>';
     }
 }
 
 print '<br>156の倍数: ';
 
-for($l=0;$l<count($ohfs);$l++){
+//156の倍数を1行に10個ずつ表示
+for ($l=0; $l<count($ohfs); $l++){
     print $ohfs[$l] . ',';
-    if(($l+1)%10==0){
+    if (($l+1)%10 == 0){
         print '<br>';
     }
 }
